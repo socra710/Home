@@ -1,0 +1,46 @@
+:root{
+  --bg:#f6f7fb;
+  --accent:#4b8bbe;
+  --muted:#6b7280;
+  --max-width:1100px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0;background:var(--bg);color:#111}
+.container{max-width:var(--max-width);margin:0 auto;padding:1rem}
+
+.site-header{background:#fff;box-shadow:0 1px 6px rgba(16,24,40,0.06)}
+.header-inner{display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem}
+.logo{font-size:1.25rem; margin:0}
+.nav{display:none}
+.nav a{margin-left:1rem;color:var(--muted);text-decoration:none}
+.nav-toggle{border:0;background:none;font-size:1.25rem}
+
+.hero{padding:4rem 0;background:linear-gradient(180deg,var(--accent) 0%, #6fb1d9 100%);color:white}
+.hero h2{font-size:1.75rem;margin:0 0 0.5rem}
+.btn{display:inline-block;background:#fff;color:var(--accent);padding:0.5rem 1rem;border-radius:6px;text-decoration:none;margin-top:0.75rem}
+
+.section{padding:3rem 0}
+.section h3{margin-top:0}
+.info-grid{display:grid;grid-template-columns:repeat(1,1fr);gap:1rem;margin-top:1rem}
+.card{background:#fff;padding:1rem;border-radius:8px;box-shadow:0 1px 4px rgba(16,24,40,0.04)}
+
+.gallery-grid{display:grid;grid-template-columns:repeat(1,1fr);gap:1rem}
+.gallery-grid figure{margin:0;background:#fff;border-radius:8px;overflow:hidden}
+.gallery-grid img{display:block;width:100%;height:auto}
+.gallery-grid figcaption{padding:0.5rem 0.75rem;color:var(--muted)}
+
+.contact-form{display:grid;gap:0.5rem;max-width:540px}
+.contact-form label{display:block}
+.contact-form input,.contact-form textarea{width:100%;padding:0.5rem;border:1px solid #e6e9ef;border-radius:6px}
+
+.site-footer{padding:1rem 0;background:#fff;margin-top:2rem;text-align:center;color:var(--muted)}
+
+/* Responsive */
+@media(min-width:700px){
+  .nav{display:block}
+  .nav-toggle{display:none}
+  .hero h2{font-size:2.25rem}
+  .info-grid{grid-template-columns:repeat(3,1fr)}
+  .gallery-grid{grid-template-columns:repeat(3,1fr)}
+}

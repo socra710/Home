@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="100%" height="100%" fill="#d1fae5"/>
+  <g fill="#059669">
+    <rect x="50" y="180" width="120" height="120" rx="6"/>
+    <rect x="200" y="150" width="380" height="160" rx="6"/>
+  </g>
+  <text x="20" y="420" font-size="18" fill="#065f46">주방 — 샘플 이미지</text>
+</svg>
