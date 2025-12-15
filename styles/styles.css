@@ -143,22 +143,36 @@ body.modal-open{overflow:hidden}
 .saved-snippets #record-list{max-height:320px;overflow:auto;padding:0;margin:0;}
 
 /* Class table (학급 보건 기록) */
-.class-table-wrapper{background:#fff;padding:0.75rem;border-radius:8px;box-shadow:0 2px 8px rgba(2,6,23,0.06);}
+.class-table-wrapper{background:#fff;padding:1rem;border-radius:8px;box-shadow:0 2px 8px rgba(2,6,23,0.06);}
 .class-table-wrapper table{width:100%;border-collapse:collapse;font-size:0.95rem}
-.class-table-wrapper th, .class-table-wrapper td{border:1px solid #e6e9ef;padding:8px;vertical-align:middle}
-.class-table-wrapper input{width:100%;padding:6px;border:1px solid #e6e9ef;border-radius:4px}
-.class-table-wrapper .btn.primary{background:#0f5f7a;color:white;border-radius:4px;padding:0.6rem 0.9rem}
-.class-table-wrapper tbody tr td:last-child{display:flex;justify-content:center}
-.class-table-wrapper .del-row{background:#ef4444;color:white;border:0;padding:6px 8px;border-radius:4px;cursor:pointer}
+.class-table-wrapper th{border:1px solid #e6e9ef;padding:10px;vertical-align:middle;text-align:left;background:#f9fafb;font-weight:600;color:#1f2937}
+.class-table-wrapper td{border:1px solid #e6e9ef;padding:8px;vertical-align:middle}
+.class-table-wrapper input{width:100%;padding:6px;border:1px solid #e6e9ef;border-radius:4px;font-size:0.9rem;font-family:inherit}
+.class-table-wrapper input:focus{outline:2px solid rgba(75,139,190,0.3);outline-offset:-1px}
+.class-table-wrapper tbody tr:hover{background:#f9fafb}
+.class-table-wrapper .btn.primary{background:#0f5f7a;color:white;border:0;border-radius:4px;padding:0.6rem 1rem;cursor:pointer;font-weight:600;font-size:0.9rem}
+.class-table-wrapper .btn.primary:hover{background:#0a3d52}
+.class-table-wrapper .btn{background:#fff;color:#4b8bbe;border:1px solid #4b8bbe;border-radius:4px;padding:0.5rem 0.9rem;cursor:pointer;font-size:0.9rem;transition:all 200ms ease}
+.class-table-wrapper .btn:hover{background:#f0f9ff}
+.class-table-wrapper .del-row{background:#ef4444;color:white;border:0;padding:6px 8px;border-radius:4px;cursor:pointer;font-size:0.85rem;font-weight:600;transition:background 200ms ease}
+.class-table-wrapper .del-row:hover{background:#dc2626}
+.class-table-wrapper tbody td:last-child{text-align:center}
+.class-table-wrapper .class-table-actions{display:flex;gap:0.5rem;justify-content:flex-end;flex-wrap:wrap}
+
+/* Table records list */
+#table-records{background:#f9fafb;padding:0.75rem;border-radius:6px;border:1px solid #e6e9ef}
+#table-records p{margin:0 0 0.5rem 0;font-size:0.9rem;color:#6b7280;font-weight:600}
+#table-record-list li{animation:slideIn 200ms ease-out}
+@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
 
 /* make the save/add pair sit like image in attachment */
-.class-table-wrapper .class-table-actions{min-height:44px}
-.class-table-wrapper .class-table-actions .btn{min-width:84px}
+.class-table-wrapper .class-table-actions .btn{min-width:auto}
 
 @media (max-width:900px){
   .health-area{flex-direction:column}
   .image-wrapper{max-width:100%}
   .saved-snippets{width:100%}
+  .class-table-wrapper{width:100%}
 }
 
 /* Snippet button & dropdown */
