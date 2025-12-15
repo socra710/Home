@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>보건실 - 우리집</title>
+    <meta name="description" content="보건실 - 사진 위에 그리기, 칸 추가 및 텍스트 저장 기능" />
+    <link rel="stylesheet" href="styles/styles.css" />
+    <link rel="icon" href="assets/favicon.svg" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <h1 class="logo">우리집 - 보건실</h1>
+        <a class="btn" href="index.html">뒤로</a>
+      </div>
+    </header>
+
+    <main class="section">
+      <div class="container">
+        <h3>보건실: 사진에 칸 추가 및 텍스트 관리</h3>
+        <div class="patient-header" style="display:flex;gap:0.5rem;align-items:center;margin:0.75rem 0">
+          <label style="display:flex;gap:0.25rem;align-items:center;">
+            환자명
+            <input id="patient-name" style="padding:0.35rem;border-radius:6px;border:1px solid #e6e9ef;margin-left:0.25rem" placeholder="홍길동" />
+          </label>
+          <label style="display:flex;gap:0.25rem;align-items:center;">
+            날짜
+            <input id="patient-date" type="date" style="padding:0.35rem;border-radius:6px;border:1px solid #e6e9ef;margin-left:0.25rem" />
+          </label>
+          <label style="display:flex;gap:0.25rem;align-items:center;">
+            시간
+            <input id="patient-time" type="time" style="padding:0.35rem;border-radius:6px;border:1px solid #e6e9ef;margin-left:0.25rem" />
+          </label>
+          <button id="save-patient" class="btn" style="margin-left:auto">환자 저장</button>
+        </div>
+        
+        <!-- Clinical record fields -->
+        <div class="record-form" style="display:flex;gap:0.75rem;align-items:flex-start;margin-bottom:0.75rem;flex-wrap:wrap">
+          <label style="display:flex;flex-direction:column;max-width:220px">
+            아픈 위치
+            <input id="injury-location" placeholder="예: 왼쪽 무릎" style="padding:0.45rem;border-radius:6px;border:1px solid #e6e9ef;margin-top:0.25rem" />
+          </label>
+          <label style="display:flex;flex-direction:column;max-width:320px">
+            처치 방법
+            <input id="treatment-method" placeholder="예: 냉찜질, 붕대" style="padding:0.45rem;border-radius:6px;border:1px solid #e6e9ef;margin-top:0.25rem" />
+          </label>
+          <label style="display:flex;flex-direction:column;flex:1;min-width:320px">
+            기타
+            <textarea id="other-notes" placeholder="추가 메모" rows="3" style="padding:0.45rem;border-radius:6px;border:1px solid #e6e9ef;margin-top:0.25rem"></textarea>
+          </label>
+          <div style="display:flex;gap:0.5rem;align-items:center">
+            <button id="save-patient-record" class="btn">기록 저장</button>
+            <!-- <button id="new-record" class="btn">새 기록</button>
+            <button id="export-record" class="btn">내보내기</button>
+          </div>
+        </div>
+        <div class="health-toolbar" style="display:flex;gap:0.5rem;margin-bottom:0.75rem;align-items:center">
+          <label class="btn" for="upload-image">사진 업로드</label>
+          <input type="file" id="upload-image" accept="image/*" style="display:none" /> -->
+          <!-- <button id="add-box" class="btn">칸 추가</button>
+          <button id="toggle-draw" class="btn">그리기</button>
+          <button id="toggle-straight" class="btn">직선 고정</button>
+          <div class="rotate-controls" style="display:flex;gap:0.25rem;align-items:center">
+            <button id="rotate-left" class="btn">⟲</button>
+            <input id="rotate-slider" type="range" min="-45" max="45" value="0" style="width:120px" />
+            <button id="rotate-right" class="btn">⟳</button>
+            <button id="toggle-fit" class="btn">맞춤</button>
+          </div>
+          <input id="cell-text" placeholder="칸에 넣을 글" style="padding:0.45rem;border-radius:6px;border:1px solid #e6e9ef;" />
+          <!-- <button id="save-text" class="btn">저장</button> -->
+        </div>
+
+        <div class="health-area">
+          <div class="image-wrapper" id="image-area">
+            <img id="health-image" src="assets/sample1.svg" alt="업로드된 사진" />
+            <canvas id="draw-canvas"></canvas>
+            <div id="boxes" class="boxes"></div>
+          </div>
+
+          <!-- Classroom-style table for multiple entries -->
+          <div class="class-table-wrapper card" style="flex:1;min-width:380px">
+            <h4 style="margin-top:0">학급 보건 기록</h4>
+            <div style="overflow:auto;border:1px solid #e6e9ef;border-radius:6px;background:#fff;padding:0.5rem">
+              <table id="class-table" style="width:100%;border-collapse:collapse">
+                <thead>
+                  <tr>
+                    <th style="border:1px solid #e6e9ef;padding:8px;width:6rem">학년 반</th>
+                    <th style="border:1px solid #e6e9ef;padding:8px;width:10rem">이름</th>
+                    <th style="border:1px solid #e6e9ef;padding:8px">아픈 위치</th>
+                    <th style="border:1px solid #e6e9ef;padding:8px">처치방법</th>
+                    <th style="border:1px solid #e6e9ef;padding:8px">기타</th>
+                    <th style="border:1px solid #e6e9ef;padding:8px;width:56px"> </th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="class-table-actions" style="position:relative;margin-top:0.75rem">
+              <div style="position:absolute;right:0;bottom:0;display:flex;gap:0.5rem">
+                <button id="save-table" class="btn primary">저장</button>
+                <button id="add-row" class="btn">칸 추가</button>
+              </div>
+            </div>
+          </div>
+
+          <aside class="saved-snippets" id="saved-snippets">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <h4 style="margin:0">환자 기록</h4>
+              <div style="display:flex;align-items:center;gap:0.4rem">
+                <button id="snippet-button" class="snippet-button small">스니펫</button>
+                <button id="show-records" class="btn">기록 보기</button> -->
+              </div>
+            </div>
+            <div style="margin-top:0.5rem;display:flex;gap:0.5rem;flex-direction:column">
+              <div style="display:flex;gap:0.5rem">
+                <!-- Actions: save record already defined in form; export removed (use top one) -->
+              </div>
+              <div style="margin-top:0.5rem">
+                <ul id="record-list"></ul>
+              </div>
+            </div>
+            <ul id="snippet-list" style="display:none"></ul>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <script src="scripts/health.js"></script>
+  </body>
+</html>

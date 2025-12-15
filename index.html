@@ -5,20 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>우리집 홈페이지</title>
     <meta name="description" content="우리 가족의 작은 홈페이지 — 소개, 사진 갤러리, 연락처" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="styles/styles.css" />
     <link rel="icon" href="assets/favicon.svg" />
   </head>
-  <body>
+  <body class="site-locked">
     <header class="site-header">
       <div class="container header-inner">
         <h1 class="logo">우리집</h1>
         <nav class="nav" id="main-nav">
           <a href="#home">홈</a>
           <a href="#about">소개</a>
-          <a href="#gallery">갤러리2</a>
-          <a href="#contact">연락</a>
+          <a href="#gallery">갤러리</a>
+          <a href="vendor-login.html">게임</a>
+          <!-- <a href="#contact">연락</a> -->
         </nav>
         <button id="nav-toggle" class="nav-toggle" aria-expanded="false">☰</button>
+        <button id="logout-btn" class="btn logout-btn-fixed" aria-hidden="true" title="로그아웃">
+          <span class="logout-icon" aria-hidden="true">⎋</span>
+          <span class="logout-label">로그아웃</span>
+        </button>
       </div>
     </header>
 
@@ -34,19 +40,24 @@
       <section id="about" class="section">
         <div class="container">
           <h3>소개</h3>
-          <p>이곳은 우리 가족의 작은 홈페이지입니다. 집에 관련된 정보, 갤러리, 연락처 등을 관리합니다.</p>
+          <p>이곳은 우리 가족의 작은 홈페이지입니다. 집에 관련된 정보, 갤러리, 등을 관리합니다.</p>
           <div class="info-grid">
             <div class="card">
               <h4>주소</h4>
-              <p>예시시 예시구 예시동 123-4</p>
+              <p id="address-text">병점2로 405동 1004호</p>
+              <!-- <button id="show-location-btn" class="btn">내 위치 보기</button> -->
             </div>
             <div class="card">
               <h4>가족</h4>
-              <p>부모님, 두 자녀, 반려견 한 마리</p>
+              <p>부모님 2분, 한 자녀</p>
+                <div style="margin-top:0.75rem;display:flex;gap:0.5rem;align-items:center">
+                <a class="btn auth-only" href="house-info.html">집 정보</a>
+                <!-- <a class="btn auth-only" href="health-room.html">보건실</a> -->
+              </div>
             </div>
-            <div class="card">
-              <h4>전화</h4>
-              <p>010-1234-5678</p>
+            <!-- <div class="card"> -->
+              <!-- <h4>전화</h4> -->
+              <!-- <p>010-1234-5678</p> -->
             </div>
           </div>
         </div>
@@ -57,15 +68,15 @@
           <h3>갤러리</h3>
           <div class="gallery-grid">
             <figure>
-              <img src="assets/sample1.svg" alt="샘플 이미지 1" />
+              <img src="assets/sample1.svg" alt= />
               <figcaption>우리집 정원</figcaption>
             </figure>
-            <figure>
+            <figure id="family-photo" data-private="true">
               <img src="assets/sample2.svg" alt="샘플 이미지 2" />
               <figcaption>가족사진</figcaption>
             </figure>
-            <figure>
-              <img src="assets/sample3.svg" alt="샘플 이미지 3" />
+            <figure id="kitchen-photo">
+              <img src="assets/kitchen_pan.svg" alt="주방 - 가스레인지에 후라이팬" />
               <figcaption>주방</figcaption>
             </figure>
           </div>
@@ -74,33 +85,83 @@
 
       <section id="contact" class="section">
         <div class="container">
-          <h3>연락</h3>
-          <p>문의가 있으시면 아래 양식을 이용하세요 (목적: 예시)</p>
-          <form id="contact-form" class="contact-form">
-            <label>
-              이름
-              <input type="text" name="name" required />
-            </label>
-            <label>
-              이메일
-              <input type="email" name="email" required />
-            </label>
-            <label>
-              메시지
-              <textarea name="message" rows="4" required></textarea>
-            </label>
-            <button type="submit" class="btn">보내기</button>
-          </form>
+          <!-- <h3>연락</h3> -->
+          <!-- <p>문의가 있으시면 아래 양식을 이용하세요 (목적: 예시)</p> -->
+          <!-- <form id="contact-form" class="contact-form"> -->
+            <!-- <label> -->
+              <!-- 이름 -->
+              <!-- <input type="text" name="name" required /> -->
+            <!-- </label> -->
+            <!-- <label> -->
+              <!-- 이메일 -->
+              <!-- <input type="email" name="email" required /> -->
+            <!-- </label> -->
+            <!-- <label> -->
+              <!-- 메시지 -->
+              <!-- <textarea name="message" rows="4" required></textarea> -->
+            <!-- </label> -->
+            <!-- <button type="submit" class="btn">보내기</button> -->
+          <!-- </form> -->
         </div>
       </section>
     </main>
 
-    <footer class="site-footer">
+    <!-- <footer class="site-footer">
       <div class="container">
         <p>© 우리집 · 모든 권리 보유</p>
       </div>
-    </footer>
+    </footer> -->
 
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="scripts/script.js"></script>
+    
+    <!-- Map modal -->
+    <div id="map-modal" class="map-modal" aria-hidden="true">
+      <div class="map-modal-inner">
+        <button id="map-close" class="map-close" aria-label="닫기">✕</button>
+        <div id="map" style="height:400px;"></div>
+        <div id="map-message" class="map-message" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- Image modal -->
+    <div id="image-modal" class="image-modal" aria-hidden="true">
+      <div class="image-modal-inner">
+        <button id="image-close" class="image-close" aria-label="이미지 닫기">✕</button>
+        <img id="image-modal-img" src="" alt="" />
+        <div id="image-modal-caption" class="image-caption"></div>
+      </div>
+    </div>
+
+    <!-- Login modal -->
+    <div id="auth-modal" class="auth-modal" aria-hidden="false">
+      <div class="auth-inner">
+        <h2>로그인</h2>
+        <p>관리자 계정으로 로그인해야 사이트에 접근할 수 있습니다.</p>
+        <form id="login-form">
+          <label>
+            사용자명
+            <input type="text" id="login-user" name="username" autocomplete="username" required />
+          </label>
+          <label>
+            비밀번호
+            <input type="password" id="login-pass" name="password" autocomplete="current-password" required />
+          </label>
+          <div style="display:flex;gap:0.5rem;align-items:center;margin-top:0.5rem">
+            <button type="submit" class="btn">로그인</button>
+            <!-- <label style="font-size:0.9rem;color:var(--muted)"><input type="checkbox" id="remember-me" /> 션 유지세</label> -->
+          </div>
+          <div id="login-error" style="color:#b91c1c;margin-top:0.5rem;display:none"></div>
+        </form>
+        <!-- <p style="font-size:0.85rem;color:var(--muted);margin-top:0.75rem">관리자: jasper, 비밀번호: 279813</p> -->
+      </div>
+    </div>
+    <noscript>
+      <div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:2000">
+        <div style="background:white;padding:1rem;border-radius:8px;max-width:90%;text-align:center">
+          이 사이트는 JavaScript를 필요로 합니다. 브라우저에서 JavaScript를 활성화하고 새로고침 해주세요.
+        </div>
+      </div>
+    </noscript>
   </body>
   </html>

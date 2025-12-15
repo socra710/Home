@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>우리집 - 업체 게임</title>
+    <link rel="stylesheet" href="styles/styles.css" />
+    <style>
+      .game-area{display:flex;flex-direction:column;align-items:center;gap:0.75rem}
+      .playfield{width:640px;height:360px;background:#eaf6fb;border-radius:8px;border:1px solid #cfeaf6;position:relative;overflow:hidden}
+      .mole{position:absolute;width:48px;height:48px;border-radius:50%;background:#0f6b8a;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;cursor:pointer}
+      .game-controls{display:flex;gap:0.5rem}
+      @media (max-width:700px){ .playfield{width:100%;height:240px} }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <h1 class="logo">우리집 - 업체 게임</h1>
+        <div style="display:flex;gap:0.5rem">
+          <a class="btn" href="index.html">홈으로</a>
+          <button id="vendor-logout" class="btn">로그아웃</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="section">
+      <div class="container" style="max-width:820px">
+        <div class="card game-area">
+          <h3>반응속도 게임</h3>
+          <p style="color:var(--muted);margin:0">나타나는 원을 빠르게 눌러 점수를 획득하세요. 시간: <strong id="time-left">20</strong>s</p>
+          <div style="display:flex;gap:1rem;align-items:flex-start;width:100%;margin-top:0.6rem">
+            <div style="flex:1">
+              <div class="playfield" id="playfield"></div>
+            </div>
+            <aside id="leaderboard" class="card leaderboard" style="width:260px;min-width:200px;display:none">
+              <h4 style="margin:0 0 0.5rem">순위</h4>
+              <ol id="leader-list" style="padding-left:1.1rem;margin:0;color:var(--muted)"></ol>
+            </aside>
+          </div>
+          <div style="display:flex;gap:0.75rem;align-items:center">
+            <div class="game-controls">
+              <button id="start-game" class="btn">게임 시작</button>
+              <button id="stop-game" class="btn">중지</button>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:1rem;align-items:center">
+              <div>레벨: <strong id="level-number">1</strong></div>
+              <div>점수: <strong id="score">0</strong></div>
+            </div>
+          </div>
+          <div style="width:100%;display:flex;justify-content:center;margin-top:0.5rem;color:var(--muted)"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Save score modal -->
+    <div id="save-score-modal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:2000">
+      <div style="background:#fff;padding:1rem;border-radius:8px;min-width:320px;text-align:center">
+        <div style="font-weight:600;margin-bottom:0.5rem">게임 종료</div>
+        <div style="margin-bottom:0.5rem">기록을 순위에 저장할까요?</div>
+        <div style="margin-bottom:0.5rem">
+          <input id="player-name" placeholder="이름을 입력하세요 (비워두면 기본: player)" style="width:100%;padding:8px;border:1px solid #e6e9ef;border-radius:6px" />
+        </div>
+        <div style="display:flex;gap:0.5rem;justify-content:center">
+          <button id="save-no" class="btn">아니요</button>
+          <button id="save-yes" class="btn">예</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Warning modal shown when name is empty and user clicks '예' -->
+    <div id="save-warning-modal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:2100">
+      <div style="background:#fff;padding:1rem;border-radius:8px;min-width:300px;text-align:center">
+        <div style="font-weight:600;margin-bottom:0.5rem">이름 없음</div>
+        <div style="margin-bottom:0.75rem">입력하지 않으면 이름이 'player'로 저장됩니다. 계속하시겠습니까?</div>
+        <div style="display:flex;gap:0.5rem;justify-content:center">
+          <button id="warn-no" class="btn">아니요</button>
+          <button id="warn-yes" class="btn">확인</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function(){
+        // require vendor login
+        const user = sessionStorage.getItem('vendorUser');
+        if(!user){ window.location.href = 'vendor-login.html'; }
+
+        const play = document.getElementById('playfield');
+        const startBtn = document.getElementById('start-game');
+        const stopBtn = document.getElementById('stop-game');
+        const scoreEl = document.getElementById('score');
+        const timeLeftEl = document.getElementById('time-left');
+        const logoutBtn = document.getElementById('vendor-logout');
+
+        let running = false; let score = 0; let timer = null; let spawnTimer = null; let timeLeft = 60;
+        let level = 1;
+        let misses = 0; // misses count in current level
+        const leaderboardKey = 'vendor_leaderboard';
+        function loadLeaderboard(){
+          try{ return JSON.parse(localStorage.getItem(leaderboardKey) || '[]'); }catch(e){ return []; }
+        }
+        function escapeRegex(s){ return s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'); }
+        function saveToLeaderboard(entry){
+          const arr = loadLeaderboard();
+          // only auto-append numbers when the chosen name is exactly "player" (case-insensitive)
+          if(entry && entry.name){
+            const base = (entry.name || '').trim();
+            if(base && base.toLowerCase() === 'player'){
+              const re = new RegExp('^' + escapeRegex('player') + '(\\d*)$', 'i');
+              let max = 0;
+              arr.forEach(r => {
+                const m = (r.name || '').match(re);
+                if(m){
+                  const num = m[1] ? parseInt(m[1],10) : 1;
+                  if(!isNaN(num) && num > max) max = num;
+                }
+              });
+              if(max >= 1){
+                entry.name = 'player' + (max + 1);
+              } else {
+                // normalize casing to 'player' exactly
+                entry.name = 'player';
+              }
+            }
+          }
+          arr.push(entry);
+          arr.sort((a,b)=>b.score - a.score);
+          localStorage.setItem(leaderboardKey, JSON.stringify(arr));
+        }
+        function renderLeaderboard(){
+          const el = document.getElementById('leaderboard');
+          const list = document.getElementById('leader-list');
+          const data = loadLeaderboard();
+          if(!el || !list) return;
+          if(!data.length){ el.style.display = 'none'; list.innerHTML = ''; return; }
+          el.style.display = 'block'; list.innerHTML = '';
+          data.forEach((r,i)=>{
+            const li = document.createElement('li');
+            li.style.padding = '6px 0';
+            li.innerHTML = `<strong>${i+1}위</strong> ${r.name} — ${r.score}점 <div style="font-size:0.8rem;color:#6b7280">${new Date(r.ts).toLocaleString()}</div>`;
+            if(i===0){ const badge = document.createElement('div'); badge.textContent='1등'; badge.style.display='inline-block'; badge.style.background='#f59e0b'; badge.style.color='#fff'; badge.style.padding='2px 6px'; badge.style.marginLeft='8px'; badge.style.borderRadius='6px'; li.querySelector('strong').appendChild(badge); }
+            list.appendChild(li);
+          });
+        }
+
+        function showSaveModal(){ const m = document.getElementById('save-score-modal'); if(m){ m.style.display = 'flex'; const ni = document.getElementById('player-name'); try{ ni && ni.focus(); }catch(e){} } }
+        function hideSaveModal(){ document.getElementById('save-score-modal').style.display = 'none'; }
+
+        // show a short warning message in the leaderboard area and play beep for 2s
+        function showMissWarning(){
+          const el = document.getElementById('leaderboard');
+          if(!el) return;
+          // ensure leaderboard is visible so the warning is visible
+          el.style.display = 'block';
+          // inject or show a small banner
+          let w = document.getElementById('miss-warning');
+          if(!w){ w = document.createElement('div'); w.id = 'miss-warning'; w.style.background = '#fff3cd'; w.style.color='#92400e'; w.style.padding='0.5rem'; w.style.borderRadius='6px'; w.style.marginBottom='0.5rem'; w.textContent = '주의: 기회는 한번 남았습니다'; el.prepend(w); }
+          w.style.display = 'block';
+          // beep for 2 seconds
+          beep(2000);
+          setTimeout(function(){ try{ w.style.display = 'none'; }catch(e){} }, 2000);
+        }
+
+        function handleMisses(){
+          // when misses reach 2 on level >=2, show warning and beep for 2s
+          if(level >= 2 && misses === 2){
+            showMissWarning();
+          }
+          // if misses exceed 2 (i.e., 3rd miss), game over
+          if(level >= 2 && misses >= 3){
+            onGameOverByMiss();
+          }
+        }
+
+        // WebAudio beep for duration ms
+        function beep(duration){
+          try{
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = 'sine'; o.frequency.value = 880; // A5
+            o.connect(g); g.connect(ctx.destination);
+            o.start();
+            g.gain.setValueAtTime(0.0001, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+            setTimeout(function(){ g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.02); o.stop(); try{ ctx.close(); }catch(e){} }, duration);
+          }catch(e){ /* ignore on unsupported */ }
+        }
+
+        function randomPos(size){
+          const w = play.clientWidth - size; const h = play.clientHeight - size;
+          return {left: Math.max(6, Math.floor(Math.random()*w)), top: Math.max(6, Math.floor(Math.random()*h))};
+        }
+
+        // Compute spawn timing / ttl based on level to increase difficulty
+        function getTimingsForLevel(lv){
+          // base spawn gap and ttl decrease as level increases
+          const gapMin = Math.max(100, 500 - (lv-1) * 30);
+          const gapVar = Math.max(200, 700 - (lv-1) * 60);
+          const ttl = Math.max(400, 1200 - (lv-1) * 90);
+          return {gapMin, gapVar, ttl};
+        }
+
+        function spawn(){
+          if(!running) return;
+          const mole = document.createElement('div');
+          mole.className = 'mole';
+          mole.textContent = '';
+          const size = 48;
+          const p = randomPos(size);
+          mole.style.left = p.left + 'px'; mole.style.top = p.top + 'px';
+          // mark clicked flag
+          mole._clicked = false;
+          play.appendChild(mole);
+          const t = getTimingsForLevel(level);
+          const ttl = t.ttl;
+          mole.addEventListener('click', function(){
+            if(mole._clicked) return;
+            mole._clicked = true;
+            score += 1; scoreEl.textContent = score; try{ mole.remove(); }catch(e){}
+          });
+          setTimeout(function(){
+            // if not clicked yet it's a miss
+            if(!mole._clicked){
+              try{ mole.remove(); }catch(e){}
+              // only count misses when level >=2
+              if(level >= 2){
+                misses += 1;
+                handleMisses();
+              }
+            }
+          }, ttl);
+          // schedule next spawn with level-based pacing
+          spawnTimer = setTimeout(spawn, t.gapMin + Math.random() * t.gapVar);
+        }
+
+        function start(){
+          if(running) return;
+          // initialize game state
+          running = true; score = 0; scoreEl.textContent = 0; level = 1; document.getElementById('level-number').textContent = level;
+          timeLeft = 60 * level; timeLeftEl.textContent = timeLeft; play.innerHTML = '';
+          misses = 0;
+          spawn();
+          timer = setInterval(function(){
+            timeLeft -= 1; timeLeftEl.textContent = timeLeft;
+            if(timeLeft <= 0){
+              // level-up or finish
+              if(level < 5){
+                level += 1; document.getElementById('level-number').textContent = level;
+                timeLeft = 60 * level; timeLeftEl.textContent = timeLeft;
+                misses = 0; // reset misses on new level
+                // small notice
+                alert('레벨 ' + level + ' 시작! 제한 시간이 ' + timeLeft + '초입니다.');
+              } else {
+                // reached level 5 and finished -> game over
+                stop(); onGameEnd();
+              }
+            }
+          }, 1000);
+        }
+
+        function onGameEnd(){
+          // show confirmation modal to save score
+          showSaveModal();
+        }
+
+        function onGameOverByMiss(){
+          stop();
+          // inform the player
+          alert('기회가 모두 소진되어 게임이 종료되었습니다.');
+          showSaveModal();
+        }
+
+        function stop(){ running = false; clearInterval(timer); clearTimeout(spawnTimer); spawnTimer = null; try{ play.querySelectorAll('.mole').forEach(n=>n.remove()); }catch(e){} }
+
+        startBtn.addEventListener('click', start);
+        stopBtn.addEventListener('click', stop);
+        logoutBtn.addEventListener('click', function(){ sessionStorage.removeItem('vendorUser'); window.location.href='vendor-login.html'; });
+
+        // modal buttons
+        const saveNoBtn = document.getElementById('save-no');
+        const saveYesBtn = document.getElementById('save-yes');
+        const nameInput = document.getElementById('player-name');
+        const warnModal = document.getElementById('save-warning-modal');
+        const warnNo = document.getElementById('warn-no');
+        const warnYes = document.getElementById('warn-yes');
+
+        saveNoBtn && saveNoBtn.addEventListener('click', function(){ hideSaveModal(); });
+        saveYesBtn && saveYesBtn.addEventListener('click', function(){
+          const entered = (nameInput && nameInput.value || '').trim();
+          if(!entered){
+            // Show warning modal and keep save modal open underneath
+            warnModal && (warnModal.style.display = 'flex');
+            return;
+          }
+          const entry = { name: entered, score: score, ts: Date.now() };
+          saveToLeaderboard(entry);
+          hideSaveModal();
+          renderLeaderboard();
+          alert('순위에 저장했습니다');
+        });
+
+        // warning modal handlers
+        warnNo && warnNo.addEventListener('click', function(){ warnModal.style.display = 'none'; });
+        warnYes && warnYes.addEventListener('click', function(){
+          const entry = { name: 'player', score: score, ts: Date.now() };
+          saveToLeaderboard(entry);
+          warnModal.style.display = 'none';
+          hideSaveModal();
+          renderLeaderboard();
+          alert("'player'로 저장했습니다");
+        });
+
+        // render existing leaderboard on init
+        renderLeaderboard();
+
+
+      })();
+    </script>
+  </body>
+</html>

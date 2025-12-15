@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>업체 로그인 - 우리집 게임</title>
+    <link rel="stylesheet" href="styles/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <h1 class="logo">우리집 - 업체 로그인</h1>
+        <a class="btn" href="index.html">뒤로</a>
+      </div>
+    </header>
+
+    <main class="section">
+      <div class="container">
+        <div class="card" style="max-width:520px;margin:0 auto;text-align:center">
+          <h3>업체 로그인</h3>
+          <p style="color:var(--muted)">업체 전용 게임에 접근하려면 로그인하세요.</p>
+          <form id="vendor-login" style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem;">
+            <label style="text-align:left">사용자
+              <input id="vendor-user" required placeholder="사용자명" />
+            </label>
+            <label style="text-align:left">비밀번호
+              <input id="vendor-pass" type="password" required placeholder="비밀번호" />
+            </label>
+            <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.5rem">
+              <button type="submit" class="btn">로그인</button>
+              <a class="btn" href="index.html">취소</a>
+            </div>
+            <div id="vendor-error" style="color:#b91c1c;display:none;margin-top:0.5rem"></div>
+          </form>
+          <!-- <p style="margin-top:0.6rem;color:var(--muted);font-size:0.9rem">(업체 계정: jasper / 비밀번호: 170706)</p> -->
+        </div>
+      </div>
+    </main>
+
+    <script>
+      (function(){
+        const form = document.getElementById('vendor-login');
+        const userEl = document.getElementById('vendor-user');
+        const passEl = document.getElementById('vendor-pass');
+        const err = document.getElementById('vendor-error');
+        form.addEventListener('submit', function(e){
+          e.preventDefault();
+          const user = (userEl.value || '').trim();
+          const pass = (passEl.value || '').trim();
+          if(user === 'jasper' && pass === '170706'){
+            sessionStorage.setItem('vendorUser', user);
+            window.location.href = 'vendor-game.html';
+          } else {
+            err.style.display = 'block'; err.textContent = '로그인 정보가 올바르지 않습니다.';
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
