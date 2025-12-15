@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>로그아웃 중...</title>
+    <link rel="stylesheet" href="styles/styles.css" />
+  </head>
+  <body class="logout-screen">
+    <main class="logout-inner">
+      <div class="logout-spinner" role="status" aria-live="polite" aria-label="로그아웃 중입니다"></div>
+      <div class="logout-text">로그아웃 중...</div>
+    </main>
+    <script>
+      // Wait 3 seconds, then clear auth and redirect back to index
+      (function(){
+        setTimeout(function(){
+          try { localStorage.removeItem('authUser'); } catch(e){}
+          try { sessionStorage.removeItem('authUser'); } catch(e){}
+          window.location.href = 'index.html';
+        }, 3000);
+      })();
+    </script>
+  </body>
+  </html>
