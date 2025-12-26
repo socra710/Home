@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>키오스크 - 우리집</title>
+    <link rel="stylesheet" href="styles/styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      body {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      }
+
+      .kiosk-wrapper {
+        max-width: 900px;
+        margin: 2rem auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      .kiosk-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+      }
+
+      .kiosk-header h2 {
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 800;
+      }
+
+      .kiosk-subtitle {
+        margin-top: 0.5rem;
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .kiosk-content {
+        padding: 2rem;
+      }
+
+      .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .menu-item {
+        background: white;
+        border: 3px solid #e5e7eb;
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        font-weight: 600;
+      }
+
+      .menu-item:hover {
+        border-color: #667eea;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        transform: translateY(-5px);
+      }
+
+      .menu-item.selected {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+      }
+
+      .menu-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+        display: block;
+      }
+
+      .menu-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .menu-price {
+        font-size: 0.95rem;
+        color: #666;
+        margin-top: auto;
+      }
+
+      .menu-item.selected .menu-price {
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .order-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-top: 2rem;
+      }
+
+      .order-section h3 {
+        margin-top: 0;
+        color: #1f2937;
+        font-size: 1.3rem;
+      }
+
+      .selected-items {
+        background: white;
+        padding: 1rem;
+        border-radius: 10px;
+        min-height: 100px;
+        margin-bottom: 1rem;
+        border: 2px dashed #d1d5db;
+      }
+
+      .selected-items.empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9ca3af;
+        font-style: italic;
+      }
+
+      .selected-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 0.95rem;
+      }
+
+      .selected-item:last-child {
+        border-bottom: none;
+      }
+
+      .item-qty {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .qty-btn {
+        width: 28px;
+        height: 28px;
+        border: 1px solid #d1d5db;
+        background: white;
+        cursor: pointer;
+        border-radius: 5px;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+
+      .qty-btn:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+      }
+
+      .remove-btn {
+        color: #ef4444;
+        cursor: pointer;
+        font-weight: 600;
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 0.9rem;
+      }
+
+      .remove-btn:hover {
+        text-decoration: underline;
+      }
+
+      .order-summary {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: white;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .total-price {
+        color: #667eea;
+        font-size: 1.5rem;
+      }
+
+      .order-buttons {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .order-btn {
+        flex: 1;
+        padding: 1rem;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .order-btn.complete {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .order-btn.complete:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+      }
+
+      .order-btn.cancel {
+        background: #e5e7eb;
+        color: #1f2937;
+      }
+
+      .order-btn.cancel:hover {
+        background: #d1d5db;
+      }
+
+      .back-section {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+      }
+
+      .back-section a {
+        background: white;
+        color: #1f2937;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: inline-block;
+      }
+
+      .back-section a:hover {
+        transform: translateX(-5px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      @media (max-width: 768px) {
+        .menu-grid {
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          gap: 1rem;
+        }
+
+        .menu-item {
+          min-height: 160px;
+          padding: 1rem;
+        }
+
+        .menu-icon {
+          font-size: 2.5rem;
+        }
+
+        .kiosk-wrapper {
+          margin: 1rem;
+          border-radius: 15px;
+        }
+
+        .order-buttons {
+          flex-direction: column;
+        }
+      }
+
+      /* 쿠폰 모달 스타일 */
+      .coupon-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .coupon-modal.show {
+        display: flex;
+      }
+
+      .coupon-content {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        animation: slideUp 0.3s ease-out;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(30px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .coupon-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        color: #1f2937;
+      }
+
+      #qrcode {
+        margin: 1.5rem 0;
+        display: flex;
+        justify-content: center;
+      }
+
+      .coupon-code {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: #667eea;
+        font-size: 0.95rem;
+        word-break: break-all;
+        border: 2px solid #e5e7eb;
+      }
+
+      .coupon-details {
+        background: #f0f9ff;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        text-align: left;
+        font-size: 0.9rem;
+        color: #1f2937;
+      }
+
+      .coupon-detail-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+      }
+
+      .coupon-detail-row:last-child {
+        margin-bottom: 0;
+      }
+
+      .coupon-button-group {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .coupon-btn {
+        flex: 1;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+      }
+
+      .coupon-btn.copy {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .coupon-btn.copy:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      .coupon-btn.close {
+        background: #e5e7eb;
+        color: #1f2937;
+      }
+
+      .coupon-btn.close:hover {
+        background: #d1d5db;
+      }
+
+      .copy-feedback {
+        display: none;
+        background: #10b981;
+        color: white;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+      }
+
+      .copy-feedback.show {
+        display: block;
+        animation: fadeInOut 2s ease-out;
+      }
+
+      @keyframes fadeInOut {
+        0% {
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="back-section">
+      <a href="index.html">← 돌아가기</a>
+    </div>
+
+    <!-- 쿠폰 모달 -->
+    <div class="coupon-modal" id="coupon-modal">
+      <div class="coupon-content">
+        <div class="coupon-title">🪑 쿠폰 발급 완료!</div>
+        
+        <div class="copy-feedback" id="copy-feedback">✓ 쿠폰 코드가 복사되었습니다!</div>
+
+        <!-- QR코드 생성 위치 -->
+        <div id="qrcode"></div>
+
+        <div class="coupon-code" id="coupon-code-display">-</div>
+
+        <div class="coupon-details">
+          <div class="coupon-detail-row">
+            <span>⏱️ 사용 시간:</span>
+            <span id="modal-time">-</span>
+          </div>
+          <div class="coupon-detail-row">
+            <span>🕐 발급 시간:</span>
+            <span id="modal-issued-time">-</span>
+          </div>
+        </div>
+
+        <div class="coupon-button-group">
+          <button class="coupon-btn copy" onclick="copyCouponCode()">📋 코드 복사</button>
+          <button class="coupon-btn close" onclick="closeCouponModal()">확인</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="kiosk-wrapper">
+      <div class="kiosk-header">
+        <h2>🪑 안마의자 쿠폰</h2>
+        <div class="kiosk-subtitle">사용할 안마의자 시간을 선택하세요</div>
+      </div>
+
+      <div class="kiosk-content">
+        <div style="max-width: 400px; margin: 2rem auto;">
+          <div style="background: white; border: 3px solid #e5e7eb; border-radius: 15px; padding: 2rem; text-align: center;">
+            <span style="font-size: 4rem; display: block; margin-bottom: 1rem;">🪑</span>
+            <h3 style="margin: 0 0 1.5rem 0; color: #1f2937;">안마의자</h3>
+            
+            <div style="margin-bottom: 2rem;">
+              <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">사용 시간 선택</label>
+              <select id="time-select" style="width: 100%; padding: 0.75rem; border: 2px solid #d1d5db; border-radius: 8px; font-size: 1rem; cursor: pointer;">
+                <option value="">-- 시간을 선택하세요 --</option>
+                <option value="10">10분</option>
+                <option value="20">20분</option>
+                <option value="30">30분</option>
+                <option value="60">1시간</option>
+              </select>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 2rem;">
+              <div style="font-size: 0.9rem; color: #6b7280; margin-bottom: 0.5rem;">선택 시간</div>
+              <div style="font-size: 2rem; font-weight: 700; color: #667eea;" id="selected-time">-</div>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+              <button class="order-btn complete" id="complete-btn" onclick="issueCoupon()">쿠폰 발급</button>
+              <button class="order-btn cancel" id="cancel-btn" onclick="resetCoupon()">취소</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentCouponCode = '';
+
+      // 시간 선택 이벤트
+      document.getElementById('time-select').addEventListener('change', function() {
+        const selectedTimeDiv = document.getElementById('selected-time');
+        if (this.value) {
+          selectedTimeDiv.textContent = this.value + '분';
+        } else {
+          selectedTimeDiv.textContent = '-';
+        }
+      });
+
+      // 쿠폰 발급
+      function issueCoupon() {
+        const timeSelect = document.getElementById('time-select');
+        const selectedTime = timeSelect.value;
+
+        if (!selectedTime) {
+          alert('사용 시간을 선택해주세요.');
+          return;
+        }
+
+        // 쿠폰 코드 생성
+        const couponCode = 'MASSAGE-' + new Date().getFullYear() + String(new Date().getMonth() + 1).padStart(2, '0') + String(new Date().getDate()).padStart(2, '0') + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        
+        // 발급 시간
+        const issuedAt = new Date().toLocaleTimeString('ko-KR');
+
+        // 현재 쿠폰 코드 저장
+        currentCouponCode = couponCode;
+
+        // 모달에 정보 표시
+        document.getElementById('coupon-code-display').textContent = couponCode;
+        document.getElementById('modal-time').textContent = selectedTime + '분';
+        document.getElementById('modal-issued-time').textContent = issuedAt;
+
+        // QR코드 생성
+        generateQRCode(couponCode);
+
+        // 모달 표시
+        document.getElementById('coupon-modal').classList.add('show');
+
+        // 선택 초기화
+        resetCoupon();
+      }
+
+      // QR코드 생성
+      function generateQRCode(text) {
+        // 이전 QR코드 제거
+        const qrcodeDiv = document.getElementById('qrcode');
+        qrcodeDiv.innerHTML = '';
+
+        // 새 QR코드 생성
+        new QRCode(qrcodeDiv, {
+          text: text,
+          width: 200,
+          height: 200,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      }
+
+      // 쿠폰 코드 복사
+      function copyCouponCode() {
+        if (currentCouponCode) {
+          navigator.clipboard.writeText(currentCouponCode).then(() => {
+            const feedback = document.getElementById('copy-feedback');
+            feedback.classList.add('show');
+            setTimeout(() => {
+              feedback.classList.remove('show');
+            }, 2000);
+          }).catch(err => {
+            alert('복사 실패: ' + err);
+          });
+        }
+      }
+
+      // 쿠폰 모달 닫기
+      function closeCouponModal() {
+        document.getElementById('coupon-modal').classList.remove('show');
+      }
+
+      // 취소
+      function resetCoupon() {
+        document.getElementById('time-select').value = '';
+        document.getElementById('selected-time').textContent = '-';
+      }
+
+      // ESC 키로 모달 닫기
+      document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+          closeCouponModal();
+        }
+      });
+
+      // 모달 외부 클릭으로 닫기
+      document.getElementById('coupon-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeCouponModal();
+        }
+      });
+    </script>
+  </body>
+</html>
+
